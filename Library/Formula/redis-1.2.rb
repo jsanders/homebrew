@@ -25,21 +25,21 @@ class Redis12 < Formula
 
     doc.install Dir["doc/*"]
     etc.install "redis.conf" => "redis1.2.conf"
-    (prefix+'io.redis.redis-server1.2.plist').write startup_plist
-    (prefix+'io.redis.redis-server1.2.plist').chmod 0644
+    plist_path.write startup_plist
+    plist_path.chmod 0644
   end
 
   def caveats
     <<-EOS.undent
     If this is your first install, automatically load on login with:
         mkdir -p ~/Library/LaunchAgents
-        cp #{prefix}/io.redis.redis-server1.2.plist ~/Library/LaunchAgents/
-        launchctl load -w ~/Library/LaunchAgents/io.redis.redis-server1.2.plist
+        cp #{plist_path} ~/Library/LaunchAgents/
+        launchctl load -w ~/Library/LaunchAgents/#{plist_path.basename}
 
-    If this is an upgrade and you already have the io.redis.redis-server1.2.plist loaded:
-        launchctl unload -w ~/Library/LaunchAgents/io.redis.redis-server1.2.plist
-        cp #{prefix}/io.redis.redis-server1.2.plist ~/Library/LaunchAgents/
-        launchctl load -w ~/Library/LaunchAgents/io.redis.redis-server1.2.plist
+    If this is an upgrade and you already have the #{plist_path.basename} loaded:
+        launchctl unload -w ~/Library/LaunchAgents/#{plist_path.basename}
+        cp #{plist_path} ~/Library/LaunchAgents/
+        launchctl load -w ~/Library/LaunchAgents/#{plist_path.basename}
 
       To start redis manually:
         redis-server1.2 #{etc}/redis1.2.conf
@@ -51,17 +51,17 @@ class Redis12 < Formula
 
   def startup_plist
     return <<-EOPLIST
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+  <plist version="1.0">
   <dict>
     <key>KeepAlive</key>
     <true/>
     <key>Label</key>
-    <string>io.redis.redis-server1.2</string>
+    <string>#{plist_name}</string>
     <key>ProgramArguments</key>
     <array>
-      <string>#{bin}/redis-server1.2</string>
+      <string>#{HOMEBREW_PREFIX}/bin/redis-server1.2</string>
       <string>#{etc}/redis1.2.conf</string>
     </array>
     <key>RunAtLoad</key>
@@ -75,7 +75,7 @@ class Redis12 < Formula
     <key>StandardOutPath</key>
     <string>#{var}/log/redis1.2.log</string>
   </dict>
-</plist>
+  </plist>
     EOPLIST
   end
 end
