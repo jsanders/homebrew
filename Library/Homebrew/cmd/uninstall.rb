@@ -2,6 +2,8 @@ require 'keg'
 
 module Homebrew extend self
   def uninstall
+    raise KegUnspecifiedError if ARGV.named.empty?
+
     unless ARGV.force?
       ARGV.kegs.each do |keg|
         puts "Uninstalling #{keg}..."
@@ -10,17 +12,16 @@ module Homebrew extend self
       end
     else
       ARGV.formulae.each do |f|
-        rack = f.prefix.parent
-        if rack.directory?
+        if f.rack.directory?
           puts "Uninstalling #{f}..."
-          rack.children.each do |keg|
+          f.rack.children.each do |keg|
             if keg.directory?
               keg = Keg.new(keg)
               keg.unlink
               keg.rmtree
             end
           end
-          rack.rmdir
+          f.rack.rmtree
         end
       end
     end

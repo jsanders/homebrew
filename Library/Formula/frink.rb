@@ -3,7 +3,7 @@ require 'formula'
 class Frink < Formula
   head 'http://futureboy.us/frinkjar/frink.jar'
   homepage 'http://futureboy.us/frinkdocs/index.html'
-  md5 'a7db7977a520ea2b54d1166ff0738efc'
+  md5 '3d9bec20aaf2e9da2c1336f1a400cafb'
 
   depends_on 'rlwrap'
 

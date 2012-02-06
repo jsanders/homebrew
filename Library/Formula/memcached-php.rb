@@ -5,10 +5,13 @@ class MemcachedPhp < Formula
   homepage 'http://pecl.php.net/package/memcached'
   md5 'b91f815ad59086d0c3564cce022b5c4f'
 
+  depends_on 'libmemcached'
+
   def install
     Dir.chdir "memcached-#{version}" do
       system "phpize"
-      system "./configure", "--prefix=#{prefix}"
+      system "./configure", "--prefix=#{prefix}",
+                            "--with-libmemcached-dir=#{Formula.factory('libmemcached').prefix}"
       system "make"
       prefix.install 'modules/memcached.so'
     end

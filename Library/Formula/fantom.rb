@@ -1,9 +1,9 @@
 require 'formula'
 
 class Fantom < Formula
-  url 'http://fan.googlecode.com/files/fantom-1.0.59.zip'
+  url 'http://fan.googlecode.com/files/fantom-1.0.61.zip'
   homepage 'http://fantom.org'
-  md5 '49f20d8a658e1e0b3daa861aa5287d11'
+  md5 '4ead834efae383be885401a747edc6af'
 
   def options
     [['--with-src', 'Also install fantom source'],

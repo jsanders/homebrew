@@ -10,22 +10,27 @@ module HomebrewArgvExtension
   def formulae
     require 'formula'
     @formulae ||= downcased_unique_named.map{ |name| Formula.factory name }
-    raise FormulaUnspecifiedError if @formulae.empty?
-    @formulae
+    return @formulae
   end
 
   def kegs
     require 'keg'
     require 'formula'
     @kegs ||= downcased_unique_named.collect do |name|
-      d = HOMEBREW_CELLAR+Formula.canonical_name(name)
-      dirs = d.children.select{ |pn| pn.directory? } rescue []
-      raise NoSuchKegError.new(name) if not d.directory? or dirs.length == 0
+      n = Formula.canonical_name(name)
+      rack = HOMEBREW_CELLAR + if n.include? "/"
+        # canonical_name returns a path if it was a formula installed via a
+        # URL. And we only want the name. FIXME that function is insane.
+        Pathname.new(n).stem
+      else
+        n
+      end
+      dirs = rack.children.select{ |pn| pn.directory? } rescue []
+      raise NoSuchKegError.new(name) if not rack.directory? or dirs.length == 0
       raise MultipleVersionsInstalledError.new(name) if dirs.length > 1
       Keg.new dirs.first
     end
-    raise KegUnspecifiedError if @kegs.empty?
-    @kegs
+    return @kegs
   end
 
   # self documenting perhaps?
@@ -59,16 +64,28 @@ module HomebrewArgvExtension
     flag? '--HEAD'
   end
 
+  def build_devel?
+    include? '--devel'
+  end
+
   def build_universal?
     include? '--universal'
   end
 
+  # Request a 32-bit only build.
+  # This is needed for some use-cases though we prefer to build Universal
+  # when a 32-bit version is needed.
+  def build_32_bit?
+    include? '--32-bit'
+  end
+
+  def build_bottle?
+    MacOS.bottles_supported? and include? '--build-bottle'
+  end
+
   def build_from_source?
-    return true if flag? '--build-from-source' or ENV['HOMEBREW_BUILD_FROM_SOURCE'] \
-      or not MacOS.lion? or HOMEBREW_PREFIX.to_s != '/usr/local'
-    options = options_only
-    options.delete '--universal'
-    not options.empty?
+    flag? '--build-from-source' or ENV['HOMEBREW_BUILD_FROM_SOURCE'] \
+      or not MacOS.bottles_supported? or not options_only.empty?
   end
 
   def flag? flag
@@ -83,6 +100,26 @@ module HomebrewArgvExtension
   def usage
     require 'cmd/help'
     Homebrew.help_s
+  end
+
+  def filter_for_dependencies
+    # Clears some flags that affect installation, yields to a block, then
+    # restores to original state.
+    old_args = clone
+
+    flags_to_clear = %w[
+      --debug -d
+      --devel
+      --fresh
+      --interactive -i
+      --HEAD
+    ]
+    flags_to_clear.concat %w[--verbose -v] if quieter?
+    flags_to_clear.each {|flag| delete flag}
+
+    yield
+
+    replace old_args
   end
 
   private

@@ -7,18 +7,21 @@ class Rtmpdump < Formula
 
   depends_on 'openssl' if MacOS.leopard?
 
-  fails_with_llvm if MacOS.lion?
+  # note: as of LLVM build 2336, this still has runtime issues
+  fails_with_llvm "Crashes at runtime"
 
   # Use dylib instead of so
   def patches; DATA; end
 
   def install
-    ENV.j1
-    inreplace ["Makefile", "librtmp/Makefile"] do |s|
-      s.change_make_var! "CC", ENV['CC']
-      s.change_make_var! "LD", ENV['LD']
-    end
-    system "make", "prefix=#{prefix}", "MANDIR=#{man}", "SYS=posix", "install"
+    ENV.deparallelize
+    system "make", "CC=#{ENV.cc}",
+                   "XCFLAGS=#{ENV.cflags}",
+                   "XLDFLAGS=#{ENV.ldflags}",
+                   "MANDIR=#{man}",
+                   "SYS=posix",
+                   "prefix=#{prefix}",
+                   "install"
   end
 end
 

@@ -2,23 +2,16 @@ require 'formula'
 require 'hardware'
 
 class Qt < Formula
-  url 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.7.3.tar.gz'
-  md5 '49b96eefb1224cc529af6fe5608654fe'
+  url 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.8.0.tar.gz'
+  md5 'e8a5fdbeba2927c948d9f477a6abe904'
   homepage 'http://qt.nokia.com/'
-  bottle 'https://downloads.sourceforge.net/project/machomebrew/Bottles/qt-4.7.3-bottle.tar.gz'
-  bottle_sha1 'a50123be33c96cba97d4bcee61f3859c7d52000e'
+
+  bottle do
+    url 'https://downloads.sf.net/project/machomebrew/Bottles/qt-4.8.0-bottle.tar.gz'
+    sha1 '2bfe00c5112b0d2a680cd01144701f8937846096'
+  end
 
   head 'git://gitorious.org/qt/qt.git', :branch => 'master'
-
-  def patches
-    [
-      # Fixes compilation on Lion or with llvm-gcc
-      # Should be unneeded in Qt 4.7.4.
-      "https://qt.gitorious.org/qt/qt/commit/91be1263b42a0a91daf3f905661e356e31482fd3?format=patch",
-      # Stop complaining about using Lion
-      "https://qt.gitorious.org/qt/qt/commit/1766bbdb53e1e20a1bbfb523bbbbe38ea7ab7b3d?format=patch"
-    ]
-  end
 
   def options
     [
@@ -33,7 +26,17 @@ class Qt < Formula
   depends_on "d-bus" if ARGV.include? '--with-qtdbus'
   depends_on 'sqlite' if MacOS.leopard?
 
+  def patches
+    [
+      # Fix compilation with llvm-gcc. Remove for 4.8.1.
+      "https://qt.gitorious.org/qt/qt/commit/448ab7cd150ab7bb7d12bcac76bc2ce1c72298bd?format=patch"
+    ]
+  end
+
   def install
+    # Needed for Qt 4.8.0 due to attempting to link moc with gcc.
+    ENV['LD'] = ENV['CXX']
+
     ENV.x11
     ENV.append "CXXFLAGS", "-fvisibility=hidden"
     args = ["-prefix", prefix,

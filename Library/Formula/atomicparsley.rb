@@ -3,7 +3,7 @@ require 'formula'
 class Atomicparsley < Formula
   url 'https://bitbucket.org/wez/atomicparsley/get/0.9.4.tar.bz2'
   homepage 'http://bitbucket.org/wez/atomicparsley/overview/'
-  md5 'f3d2f9cb8158b86748c5ffd9d264fa7a'
+  md5 '2ce6f39cedc959f46b5515920c35d0d7'
 
   def install
     system "./autogen.sh"

@@ -2,13 +2,12 @@ require 'formula'
 
 class Nginx < Formula
   homepage 'http://nginx.org/'
-  url 'http://nginx.org/download/nginx-1.0.5.tar.gz'
-  head 'http://nginx.org/download/nginx-1.1.0.tar.gz'
+  url 'http://nginx.org/download/nginx-1.0.11.tar.gz'
+  md5 'a41a01d7cd46e13ea926d7c9ca283a95'
 
-  unless ARGV.build_head?
-    md5 '373c7761a7c682b92b164c8ee3d6d243'
-  else
-    md5 '3381f34eafc755f935a2d94148500505'
+  devel do
+    url 'http://nginx.org/download/nginx-1.1.14.tar.gz'
+    md5 '16d523e395778ef35b49a2fa6ad18af0'
   end
 
   depends_on 'pcre'
@@ -53,9 +52,12 @@ class Nginx < Formula
     args << "--with-http_dav_module" if ARGV.include? '--with-webdav'
 
     system "./configure", *args
+    system "make"
     system "make install"
+    man8.install "objs/nginx.8"
 
-    (prefix+'org.nginx.nginx.plist').write startup_plist
+    plist_path.write startup_plist
+    plist_path.chmod 0644
   end
 
   def caveats; <<-EOS.undent
@@ -68,8 +70,8 @@ class Nginx < Formula
 
     You can start nginx automatically on login running as your user with:
       mkdir -p ~/Library/LaunchAgents
-      cp #{prefix}/org.nginx.nginx.plist ~/Library/LaunchAgents/
-      launchctl load -w ~/Library/LaunchAgents/org.nginx.nginx.plist
+      cp #{plist_path} ~/Library/LaunchAgents/
+      launchctl load -w ~/Library/LaunchAgents/#{plist_path.basename}
 
     Though note that if running as your user, the launch agent will fail if you
     try to use a port below 1024 (such as http's default of 80.)
@@ -83,7 +85,7 @@ class Nginx < Formula
 <plist version="1.0">
   <dict>
     <key>Label</key>
-    <string>org.nginx.nginx</string>
+    <string>#{plist_name}</string>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
@@ -92,7 +94,7 @@ class Nginx < Formula
     <string>#{`whoami`.chomp}</string>
     <key>ProgramArguments</key>
     <array>
-        <string>#{sbin}/nginx</string>
+        <string>#{HOMEBREW_PREFIX}/sbin/nginx</string>
         <string>-g</string>
         <string>daemon off;</string>
     </array>
@@ -107,21 +109,20 @@ end
 __END__
 --- a/auto/lib/pcre/conf
 +++ b/auto/lib/pcre/conf
-@@ -155,6 +155,22 @@ else
+@@ -155,6 +155,21 @@ else
              . auto/feature
          fi
 
 +        if [ $ngx_found = no ]; then
 +
 +            # Homebrew
-+            HOMEBREW_PREFIX=${NGX_PREFIX%Cellar*}
-+            ngx_feature="PCRE library in ${HOMEBREW_PREFIX}"
-+            ngx_feature_path="${HOMEBREW_PREFIX}/include"
++            ngx_feature="PCRE library in HOMEBREW_PREFIX"
++            ngx_feature_path="HOMEBREW_PREFIX/include"
 +
 +            if [ $NGX_RPATH = YES ]; then
-+                ngx_feature_libs="-R${HOMEBREW_PREFIX}/lib -L${HOMEBREW_PREFIX}/lib -lpcre"
++                ngx_feature_libs="-RHOMEBREW_PREFIX/lib -LHOMEBREW_PREFIX/lib -lpcre"
 +            else
-+                ngx_feature_libs="-L${HOMEBREW_PREFIX}/lib -lpcre"
++                ngx_feature_libs="-LHOMEBREW_PREFIX/lib -lpcre"
 +            fi
 +
 +            . auto/feature

@@ -61,6 +61,10 @@ class VersionTests < Test::Unit::TestCase
       '9.04'
   end
 
+  def test_new_github_style
+    check "https://github.com/sam-github/libnet/tarball/libnet-1.1.4", "1.1.4"
+  end
+
   def test_gloox_beta_style
     check "http://camaya.net/download/gloox-1.0-beta7.tar.bz2", '1.0-beta7'
   end
@@ -163,5 +167,10 @@ class VersionTests < Test::Unit::TestCase
   def test_bottle_style
     check 'https://downloads.sourceforge.net/project/machomebrew/Bottles/qt-4.7.3-bottle.tar.gz',
       '4.7.3'
+  end
+
+  def test_imagemagick_bottle_style
+    check 'http://downloads.sf.net/project/machomebrew/Bottles/imagemagick-6.7.1-1-bottle.tar.gz',
+      '6.7.1-1'
   end
 end
